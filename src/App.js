@@ -1,23 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+
 
 function App() {
+  const [username, setUsername] = useState('');
+  const [salt, setSalt] = useState('');
+  
+  const handleSubmit = async () => {
+    try {
+      // Ensure invoke is called when Tauri is available
+      
+        const result = await invoke('get_salt', { username });
+        setSalt(result); // Set the salt from the result
+        localStorage.setItem('salt', result);
+      
+    } catch (error) {
+      console.error('Error fetching salt:', error);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <input
+        type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Enter username"
+      />
+      <button onClick={handleSubmit}>Get Salt</button>
+      <div>{salt && `Salt: ${salt}`}</div>
     </div>
   );
 }
