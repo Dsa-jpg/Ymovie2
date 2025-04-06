@@ -2,8 +2,8 @@ name: Build and Release Tauri App
 
 on:
   push:
-    tags:
-      - 'v*'  # Trigger the workflow on any tag starting with 'v'
+    branches:
+      - master  # Trigger the workflow on any tag starting with 'v'
 
 jobs:
   build:
