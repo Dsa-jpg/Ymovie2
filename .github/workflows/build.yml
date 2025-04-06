@@ -1,56 +1,62 @@
-name: Build and Publish Tauri App
+name: Build and Release Tauri App
 
 on:
   push:
-    branches:
-      - master  # nebo 'master', pokud používáš master jako hlavní větev
+    tags:
+      - 'v*'  # Trigger the workflow on any tag starting with 'v'
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Nebo použij jiný operační systém podle potřeby
+    runs-on: ubuntu-latest  # Use Ubuntu to build the app
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4  # Checkout the code from your repository
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwebkit2gtk-4.0-dev libssl-dev libgtk-3-dev pkg-config liblzma-dev
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
-        node-version: '14'  # Můžeš nastavit verzi Node.js podle potřeby
+        node-version: '16'  # Use Node.js LTS version
+        cache: 'npm'  # Enable caching of npm modules
 
     - name: Set up Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@stable  # Install Rust (stable version)
+    
+    - name: Cache Rust build artifacts
+      uses: swatinem/rust-cache@v2  # Cache Rust build artifacts to speed up builds
+
+    - name: Install frontend dependencies
+      run: |
+        npm install  # Install frontend dependencies (Node.js dependencies)
+
+    - name: Build frontend (optional step if you need it)
+      run: |
+        npm run build  # Build the frontend (if needed for your Tauri app)
+
+    - name: Run Tauri build
+      uses: tauri-apps/tauri-action@v0  # Tauri-specific action for building the app
       with:
-        toolchain: stable  # Používáme stabilní verzi Rustu
-        components: clippy, rustfmt
-
-    - name: Install dependencies
+        release: true  # Create the release artifact
+        target: "x86_64-pc-windows-msvc"  # Specify target OS (example: for Windows)
+    
+    - name: Create and upload latest.json
       run: |
-        npm install  # Nainstaluj všechny závislosti pro Tauri
+        VERSION=$(node -p "require('./package.json').version")  # Get version from package.json
+        echo "{
+          \"version\": \"$VERSION\",
+          \"url\": \"https://github.com/${{ github.repository }}/releases/download/v$VERSION/ymovie2.exe\"
+        }" > latest.json  # Create the latest.json file for Tauri updater
 
-    - name: Build the app for Windows
-      run: |
-        npm run tauri build --target windows  # Vytvoř EXE pro Windows
-
-    - name: Upload release assets
+    - name: Upload release assets to GitHub
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          src-tauri/target/release/bundle/windows/ymovie2.exe  # Cesta k EXE souboru
+          src-tauri/target/release/bundle/windows/ymovie2.exe  # Path to EXE file
+          latest.json  # Upload the latest.json file
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  release:
-    runs-on: ubuntu-latest  # Tento job poběží na Ubuntu serveru
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Create GitHub release
-      uses: ghcr.io/softprops/action-gh-release@v1
-      with:
-        files: |
-          src-tauri/target/release/bundle/windows/ymovie2.exe  # Cesta k EXE souboru
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token to authenticate the upload
