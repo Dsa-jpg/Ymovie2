@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@tauri-apps/api": "^2.0.1",
+    "@tauri-apps/plugin-dialog": "^2.2.1",
+    "@tauri-apps/plugin-updater": "^2.7.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -15,6 +17,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "tauri": "tauri",
     "dev": "",
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -40,7 +43,7 @@
     ]
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0-rc.18",
+    "@tauri-apps/cli": "^2.4.1",
     "cross-env": "7.0.3"
   }
 }
