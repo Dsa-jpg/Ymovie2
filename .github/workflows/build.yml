@@ -1,0 +1,56 @@
+name: Build and Publish Tauri App
+
+on:
+  push:
+    branches:
+      - master  # nebo 'master', pokud používáš master jako hlavní větev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Nebo použij jiný operační systém podle potřeby
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'  # Můžeš nastavit verzi Node.js podle potřeby
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable  # Používáme stabilní verzi Rustu
+        components: clippy, rustfmt
+
+    - name: Install dependencies
+      run: |
+        npm install  # Nainstaluj všechny závislosti pro Tauri
+
+    - name: Build the app for Windows
+      run: |
+        npm run tauri build --target windows  # Vytvoř EXE pro Windows
+
+    - name: Upload release assets
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          src-tauri/target/release/bundle/windows/ymovie2.exe  # Cesta k EXE souboru
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    runs-on: ubuntu-latest  # Tento job poběží na Ubuntu serveru
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Create GitHub release
+      uses: ghcr.io/softprops/action-gh-release@v1
+      with:
+        files: |
+          src-tauri/target/release/bundle/windows/ymovie2.exe  # Cesta k EXE souboru
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
