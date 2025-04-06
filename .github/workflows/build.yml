@@ -1,57 +1,78 @@
-name: Build and Release Tauri App
+name: 'publish'
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      "master"  # Spustí workflow pouze při tagování (např. v1.0.0)
+      - release
 
 jobs:
-  build:
-    runs-on: windows-latest  # Používá nejnovější verzi Windows pro běh akce
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest' # for Intel based macs.
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
 
+    runs-on: ${{ matrix.platform }}
     steps:
-    # Checkout repository
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    # Setup Node.js
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '16'  # Použijte LTS verzi Node.js
+      # Install dependencies for Ubuntu only
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-    # Install dependencies
-    - name: Install dependencies
-      run: |
-        npm ci
+      # Install dependencies for Windows
+      - name: Install dependencies (Windows only)
+        if: matrix.platform == 'windows-latest'
+        run: |
+          choco install gtk-runtime
 
-    # Setup Rust
-    - name: Setup Rust
-      uses: actions/setup-rust@v1
-      with:
-        rust-version: stable
+      # Setup Node.js
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'yarn' # Set this to npm, yarn or pnpm.
 
-    # Install Windows dependencies (WebKitGTK)
-    - name: Install Windows dependencies
-      run: |
-        choco install gtk-runtime
+      # Install Rust stable
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable # Set this to dtolnay/rust-toolchain@nightly
+        with:
+          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-    # Install Tauri CLI
-    - name: Install Tauri CLI
-      run: |
-        npm install -g @tauri-apps/cli
+      # Rust cache
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
 
-    # Build the app
-    - name: Build Tauri app
-      run: |
-        npm run tauri build
+      # Install frontend dependencies
+      - name: install frontend dependencies
+        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
+        run: yarn install # change this to npm or pnpm depending on which one you use.
 
-    # Create GitHub Release (Pokud chcete automatizovat release)
-    - name: Create GitHub release
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: target/release/bundle/*
-
-    # Optionally you can upload the artifact or send notifications
+      # Tauri build
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: app-v__VERSION__ # the action automatically replaces __VERSION__ with the app version.
+          releaseName: 'App v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
