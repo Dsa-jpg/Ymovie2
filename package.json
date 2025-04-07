@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@tauri-apps/api": "^2.0.1",
+    "@tauri-apps/api": "^2.4.1",
     "@tauri-apps/plugin-dialog": "^2.2.1",
     "@tauri-apps/plugin-updater": "^2.7.0",
     "@testing-library/dom": "^10.4.0",

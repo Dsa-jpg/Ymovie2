@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "ymovie2",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.tauri.ymovie2",
   "build": {
     "frontendDist": "../build",
@@ -14,7 +14,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERCRjQwNUU3Nzk3M0U4NgpSV1NHUHBkM1hrQy9EWUwzTjdmZWhtUE9SZEZZdExwSDdaZDFKZHIreXNUb1REVXp0NGlDUEliTgo=",
       "endpoints": [
-        "https://github.com/user/repo/releases/latest/download/latest.json"
+        "https://github.com/Dsa-jpg/Ymovie2/releases/tag/app-v0.1.0/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"
