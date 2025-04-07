@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::process::{Command, Stdio};
 use std::str;
+use std::env;
 
 const BASE_URL: &str = "https://webshare.cz/api"; // Base url for webshare api
 
@@ -12,6 +13,7 @@ pub struct ResponseSalt {
     status: String,
     salt: String,
 }
+
 #[derive(Debug, Deserialize)]
 pub struct ResponseLogin {
     status: String,
@@ -133,25 +135,31 @@ pub async fn login(username: String, password: String) -> Result<String, String>
 
 
 fn run_python_script(password: &str, salt: &str) -> Result<String, String> {
-    // Spustíme Python .exe skript místo Python skriptu
-    let output = Command::new("../md5_crypt_hash.exe")  // Cesta k vygenerovanému .exe souboru
-        .arg(password)          // Předáme heslo
-        .arg(salt)              // Předáme sůl
-        .stdout(Stdio::piped())  // Přejeme si získat výstup
-        .stderr(Stdio::piped())  // Přejeme si získat chyby, pokud nějaké nastanou
+    // Získáme cestu k aktuálnímu adresáři aplikace
+    let exe_path = env::current_exe()
+        .map_err(|e| format!("Chyba při získávání cesty k aplikaci: {}", e))?
+        .parent() // Získání rodičovského adresáře
+        .ok_or("Nelze získat rodičovský adresář")? // Pokud není rodičovský adresář, vrátíme chybu
+        .join("resources/md5_crypt_hashe.exe"); // Spojíme cestu s relativní cestou k exe souboru
+
+    let output = Command::new(exe_path)  // Cesta k .exe souboru
+        .arg(password)                   // Předáme heslo
+        .arg(salt)                       // Předáme sůl
+        .stdout(Stdio::piped())           // Přejeme si získat výstup
+        .stderr(Stdio::piped())           // Přejeme si získat chyby, pokud nějaké nastanou
         .output()
         .map_err(|e| format!("Chyba při spuštění .exe souboru: {}", e))?;
 
     if !output.status.success() {
         return Err(format!(
-            "Spuštění .exe souboru selhalo: {}",
-            str::from_utf8(&output.stderr).unwrap_or("Unknown error")
+            "Spuštění .exe souboru selhalo: {}\nStderr: {}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
         ));
     }
 
     // Získáme výstup z .exe souboru
-    let result = str::from_utf8(&output.stdout)
-        .map_err(|e| format!("Chyba při čtení výstupu: {}", e))?;
+    let result = String::from_utf8_lossy(&output.stdout).to_string();
 
     // Vrátíme hodnotu (např. hash)
     Ok(result.trim().to_string())  // Trim odstraní případné nové řádky na konci

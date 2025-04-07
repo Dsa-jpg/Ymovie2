@@ -8,7 +8,6 @@
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "npx cross-env BROWSER=none npm start",
     "beforeBuildCommand": "npm run build"
-    
   },
   "plugins": {
     "updater": {
@@ -46,6 +45,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "resources": ["./resources/md5_crypt_hashe.exe"]
   }
 }
