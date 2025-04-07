@@ -5,18 +5,25 @@ import { relaunch } from '@tauri-apps/plugin-process';
 
 function App() {
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState(''); // nové pole pro heslo
   const [salt, setSalt] = useState('');
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [updateMessage, setUpdateMessage] = useState('');
   const [showProgressBar, setShowProgressBar] = useState(false);
+  const [loginMessage, setLoginMessage] = useState(''); // zpráva o přihlášení
 
   const handleSubmit = async () => {
     try {
       const result = await invoke('get_salt', { username });
       setSalt(result);
       localStorage.setItem('salt', result);
+
+      // Nyní provede login
+      const loginResult = await invoke('login', { username, password, salt: result });
+      setLoginMessage(`Login success: ${loginResult}`); // nebo podle odpovědi API
     } catch (error) {
-      console.error('Error fetching salt:', error);
+      console.error('Error fetching salt or logging in:', error);
+      setLoginMessage('Login failed.');
     }
   };
 
@@ -53,8 +60,15 @@ function App() {
         onChange={(e) => setUsername(e.target.value)}
         placeholder="Enter username"
       />
-      <button onClick={handleSubmit}>Get Salt</button>
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Enter password"
+      />
+      <button onClick={handleSubmit}>Login</button>
       <div>{salt && `Salt: ${salt}`}</div>
+      {loginMessage && <p>{loginMessage}</p>} {/* Zobrazení zprávy o přihlášení */}
 
       {/* Update message (volitelné) */}
       {updateMessage && <p style={{ marginTop: 10 }}>{updateMessage}</p>}

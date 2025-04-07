@@ -4,7 +4,7 @@ mod webshare;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![webshare::get_salt])
+        .invoke_handler(tauri::generate_handler![webshare::get_salt,webshare::login])
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
