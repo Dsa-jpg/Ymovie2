@@ -5,6 +5,9 @@ import { ProgressBar } from 'primereact/progressbar';
 
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { getVersion } from '@tauri-apps/api/app';
+
+import "./UpdateChecker.css"
 
 const UpdateChecker = () => {
     const toast = useRef(null);
@@ -38,16 +41,18 @@ const UpdateChecker = () => {
     useEffect(() => {
         const checkForUpdates = async () => {
             console.log('Kontroluji aktualizace...');
-            
-
+            const appVersion = await getVersion();
+            localStorage.setItem('build_version', appVersion);
             try {
                 const update = await check();
                 console.log('Výsledek kontroly:', update);
-                localStorage.setItem('build_version',update.currentVersion)
+                
                 // Zkontrolujeme, jestli je update dostupný
                 if (update) {
                     console.log('Je dostupný update:', update.version);
+                    localStorage.setItem('build_version', update.currentVersion);
                     toast.current.show({
+                        className: 'custom-toast', 
                         sticky: true,
                         severity: 'info',
                         summary: 'Dostupná aktualizace',
@@ -63,11 +68,10 @@ const UpdateChecker = () => {
                             </div>
                         ),
                         life: 10000,
-                        className: 'custom-toast', // Přidání vlastní třídy
                     });
                 } else {
-                    
                     toast.current.show({
+                        className: 'custom-toast',
                         severity: 'success',
                         summary: 'Aplikace je aktuální',
                         detail: 'Zatím žádná nová verze.',
@@ -77,6 +81,7 @@ const UpdateChecker = () => {
             } catch (error) {
                 console.error('Chyba při kontrole aktualizace:', error);
                 toast.current.show({
+                    className: 'custom-toast',
                     severity: 'error',
                     summary: 'Chyba',
                     detail: 'Nepodařilo se zkontrolovat aktualizace.',
@@ -90,13 +95,12 @@ const UpdateChecker = () => {
 
     return (
         <div>
-            <Toast ref={toast} position="bottom-right" />
+            <Toast ref={toast} position="bottom-right" className="custom-toast" />
             {loading && (
                 <div style={{ position: 'fixed', bottom: 20, right: 20, width: '200px' }}>
                     <ProgressBar mode="indeterminate" style={{ height: '6px' }} />
                 </div>
             )}
-            
         </div>
     );
 };

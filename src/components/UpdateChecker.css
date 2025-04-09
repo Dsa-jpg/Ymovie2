@@ -1,0 +1,8 @@
+/* Nastavení pozadí s transparentností a barvy textu podle severity */
+.custom-toast .p-toast-message {
+    font-style: italic; /* Kurzíva pro text */
+    background: rgba(0, 0, 0, 0.2) !important; /* Černé pozadí s 20% průhledností */
+    color: inherit !important; /* Zajistíme, aby barva textu byla děděná */
+    border: none !important; /* Žádné ohraničení */
+    border-radius: 4px; /* Zaoblené rohy (volitelné) */
+}
