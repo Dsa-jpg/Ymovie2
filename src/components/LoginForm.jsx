@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { useNavigate } from 'react-router-dom';
 import { Toast } from 'primereact/toast';
 
 const LoginForm = () => {
@@ -9,7 +8,7 @@ const LoginForm = () => {
     const [salt, setSalt] = useState('');
     const [loginMessage, setLoginMessage] = useState('');
     const toast = useRef(null); // Definujeme referenci na toast
-    const navigate = useNavigate();
+
 
     const handleSubmit = async () => {
         try {
@@ -29,7 +28,6 @@ const LoginForm = () => {
                 life: 3000,
             });
 
-            navigate('/');
         } catch (error) {
             setLoginMessage('The login was not successful.');
 
