@@ -1,81 +1,92 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { Toast } from 'primereact/toast';
+import { Button } from 'primereact/button';
+import { ProgressBar } from 'primereact/progressbar';
+
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
-import React, { useState, useEffect } from 'react';
 
 const UpdateChecker = () => {
+    const toast = useRef(null);
+    const [loading, setLoading] = useState(false);
 
-    const [checkingUpdate, setCheckingUpdate] = useState(false);
-    const [updateMessage, setUpdateMessage] = useState('');
-    const [showProgressBar, setShowProgressBar] = useState(false);
+    const handleDownload = async (update) => {
+        console.log('Stahuji update...');
+        setLoading(true);
+        toast.current.clear();
 
-
-    useEffect(() => {
-        const runUpdateCheck = async () => {
-          try {
-            setCheckingUpdate(true);
-            setShowProgressBar(true);
-            const update = await check();
-            if (update && update.shouldUpdate) {
-              setUpdateMessage(`Dostupná nová verze: ${update.manifest?.version}, stahuji...`);
-              await update.downloadAndInstall();
-              await relaunch();
-            } else {
-              setUpdateMessage('Aplikace je aktuální.');
-            }
-          } catch (e) {
-            console.error('Chyba při kontrole aktualizace:', e);
-            setUpdateMessage('Nepodařilo se zkontrolovat aktualizace.');
-          } finally {
-            setCheckingUpdate(false);
-            setTimeout(() => setShowProgressBar(false), 3000);
-          }
-        };
-    
-        runUpdateCheck();
-      }, []);
-    
-      return (
-        <>
-          {updateMessage && <p>{updateMessage}</p>}
-          {showProgressBar && (
-            <div style={{
-              position: 'fixed',
-              bottom: 20,
-              right: 20,
-              width: 200,
-              height: 8,
-              backgroundColor: '#eee',
-              borderRadius: 5,
-              overflow: 'hidden',
-              boxShadow: '0 0 5px rgba(0,0,0,0.3)',
-            }}>
-              <div style={{
-                width: checkingUpdate ? '100%' : '0%',
-                height: '100%',
-                backgroundColor: '#4caf50',
-                animation: 'progressAnim 2s infinite'
-              }} />
-              <style>{`
-                @keyframes progressAnim {
-                  0% { transform: translateX(-100%); }
-                  50% { transform: translateX(-50%); }
-                  100% { transform: translateX(0); }
-                }
-              `}</style>
-            </div>
-          )}
-        </>
-      );
+        try {
+            toast.current.show({ severity: 'info', summary: 'Stahuji...', detail: 'Probíhá aktualizace...', life: 3000 });
+            await update.downloadAndInstall();
+            await relaunch();
+        } catch (error) {
+            console.error('Chyba při stahování:', error);
+            toast.current.show({ severity: 'error', summary: 'Chyba', detail: 'Aktualizace se nezdařila.', life: 3000 });
+        } finally {
+            setLoading(false);
+        }
     };
 
+    useEffect(() => {
+        const checkForUpdates = async () => {
+            console.log('Kontroluji aktualizace...');
 
+            try {
+                const update = await check();
+                console.log('Výsledek kontroly:', update);
 
+                if (update && update.shouldUpdate) {
+                    console.log('Je dostupný update:', update.manifest?.version);
+                    toast.current.show({
+                        sticky: true,
+                        severity: 'info',
+                        summary: 'Dostupná aktualizace',
+                        detail: (
+                            <div className="flex flex-column gap-2">
+                                <span>Nová verze: <strong>{update.manifest?.version}</strong></span>
+                                <Button
+                                    label="Stáhnout a nainstalovat"
+                                    icon="pi pi-download"
+                                    onClick={() => handleDownload(update)}
+                                    className="p-button-sm p-button-success"
+                                />
+                            </div>
+                        ),
+                        life: 10000
+                    });
+                } else {
+                    // Testovací fallback toast
+                    toast.current.show({
+                        severity: 'success',
+                        summary: 'Aplikace je aktuální',
+                        detail: 'Zatím žádná nová verze.',
+                        life: 3000
+                    });
+                }
+            } catch (error) {
+                console.error('Chyba při kontrole aktualizace:', error);
+                toast.current.show({
+                    severity: 'error',
+                    summary: 'Chyba',
+                    detail: 'Nepodařilo se zkontrolovat aktualizace.',
+                    life: 3000
+                });
+            }
+        };
 
+        checkForUpdates();
+    }, []);
 
-
-
-
-
-
+    return (
+        <div>
+            <Toast ref={toast} position="bottom-right" />
+            {loading && (
+                <div style={{ position: 'fixed', bottom: 20, right: 20, width: '200px' }}>
+                    <ProgressBar mode="indeterminate" style={{ height: '6px' }} />
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default UpdateChecker;

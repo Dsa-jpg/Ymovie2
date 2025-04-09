@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LoginForm from './components/LoginForm';
+
 import UpdateChecker from './components/UpdateChecker';
 import SideBar from './components/SideBar';
 
@@ -20,7 +20,7 @@ const App = () => {
         <div style={{ padding: 20, flex: 1 }}>
           <UpdateChecker />
           <Routes>
-            <Route path="/" element={isLoggedIn ? <HomePage /> : <LoginForm onLoginSuccess={() => setIsLoggedIn(true)} />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/films" element={<FilmsPage />} />
             <Route path="/series" element={<SeriesPage />} />
             <Route path="/anime" element={<AnimePage />} />
