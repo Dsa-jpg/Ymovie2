@@ -21,6 +21,14 @@ pub struct ResponseLogin {
 
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ResponseUserData {
+    vip: String,
+    vip_until: String,
+
+}
+
+
 impl ResponseSalt {
     fn from_xml(xml: &str) -> Result<Self, String> {
         from_str(xml).map_err(|e| format!("Xml parser errror {:?}", e)) // the |e| is anonymus fn (usecases in map, etc) like a lambda expression in python
@@ -28,6 +36,12 @@ impl ResponseSalt {
 }
 
 impl ResponseLogin {
+    fn from_xml(xml: &str) -> Result<Self, String> {
+        from_str(xml).map_err(|e| format!("Xml parser errror {:?}", e)) // the |e| is anonymus fn (usecases in map, etc) like a lambda expression in python
+    }
+}
+
+impl ResponseUserData {
     fn from_xml(xml: &str) -> Result<Self, String> {
         from_str(xml).map_err(|e| format!("Xml parser errror {:?}", e)) // the |e| is anonymus fn (usecases in map, etc) like a lambda expression in python
     }
@@ -111,6 +125,37 @@ impl WebshareApi {
         ResponseLogin::from_xml(&body) 
     }
 
+
+    pub async fn get_user_data(&self, token: &str) -> Result<ResponseUserData, String> {
+
+        let url = format!("{}/user_data/", self.base_url);
+        println!("[Webshare] Requesting userdata for: {}", &token);
+
+        let mut form_data = HashMap::new();
+        form_data.insert("wst", token);
+
+
+        let response = self
+            .client
+            .post(&url)
+            .form(&form_data)
+            .header("Accept", "text/xml; charset=UTF-8")
+            .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+            .send()
+            .await
+            .map_err(|e| format!("Request failed: {}", e))?;
+
+        let body = response
+            .text()
+            .await
+            .map_err(|e| format!("Failed to read body: {}", e))?;
+
+        println!("[Webshare] Raw response:\n{}", body);
+        // Zde můžeš přizpůsobit podle struktury odpovědi, kterou vrátí API
+        ResponseUserData::from_xml(&body) 
+
+    }
+
 }
 
 #[tauri::command]
@@ -131,7 +176,14 @@ pub async fn login(username: String, password: String) -> Result<String, String>
     Ok(login_response.token)
 }
 
+#[tauri::command]
+pub async fn get_user_data(token:String) -> Result<String,String> {
+    let api = WebshareApi::new();
+    let user_data_response = api.get_user_data(&token).await?;
+    println!("VIP status: {}, VIP until: {}", user_data_response.vip, user_data_response.vip_until);
+    Ok(user_data_response.vip_until)
 
+}
 
 
 fn run_python_script(password: &str, salt: &str) -> Result<String, String> {

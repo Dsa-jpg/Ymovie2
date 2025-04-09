@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import UpdateChecker from './components/UpdateChecker';
 import SideBar from './components/SideBar';
-
+import './App.css'
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
 import AnimePage from './pages/AnimePage';
