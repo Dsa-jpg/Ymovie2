@@ -1,0 +1,58 @@
+.custom-sidebar {
+    height: 100vh;
+    padding: 0;
+    background-color: #1e1e1e;
+
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 20px 10px 10px 10px; /* spodní padding 10px */
+    box-sizing: border-box;
+  }
+  
+  .sidebar-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .sidebar-menu {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .sidebar-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .build-info {
+    font-size: 0.85rem;
+
+  }
+  
+  .logout-btn {
+    background: none;
+    border: 1px solid #fff;
+
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover {
+    background-color: #ffffff20;
+  }
+  

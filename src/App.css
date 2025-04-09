@@ -36,3 +36,21 @@
     transform: rotate(360deg);
   }
 }
+
+
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  height: 100vh;
+  width: 200px;
+  background-color: #1e1e1e;
+  color: white;
+  padding: 20px;
+}
+

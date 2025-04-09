@@ -17,8 +17,7 @@ const UpdateChecker = () => {
 
         try {
             toast.current.show({ severity: 'info', summary: 'Stahuji...', detail: 'Probíhá aktualizace...', life: 3000 });
-            await update.downloadAndInstall();
-            // Zavoláme relaunch až po dokončení instalace
+            await update.downloadAndInstall(); // Stahování a instalace aktualizace
             toast.current.show({
                 severity: 'success',
                 summary: 'Aktualizace dokončena',
@@ -39,20 +38,22 @@ const UpdateChecker = () => {
     useEffect(() => {
         const checkForUpdates = async () => {
             console.log('Kontroluji aktualizace...');
+            
 
             try {
                 const update = await check();
                 console.log('Výsledek kontroly:', update);
-
-                if (update && update.shouldUpdate) {
-                    console.log('Je dostupný update:', update.manifest?.version);
+                localStorage.setItem('build_version',update.currentVersion)
+                // Zkontrolujeme, jestli je update dostupný
+                if (update) {
+                    console.log('Je dostupný update:', update.version);
                     toast.current.show({
                         sticky: true,
                         severity: 'info',
                         summary: 'Dostupná aktualizace',
                         detail: (
                             <div className="flex flex-column gap-2">
-                                <span>Nová verze: <strong>{update.manifest?.version}</strong></span>
+                                <span>Nová verze: <strong>{update.version}</strong></span>
                                 <Button
                                     label="Stáhnout a nainstalovat"
                                     icon="pi pi-download"
@@ -65,7 +66,7 @@ const UpdateChecker = () => {
                         className: 'custom-toast', // Přidání vlastní třídy
                     });
                 } else {
-                    // Testovací fallback toast
+                    
                     toast.current.show({
                         severity: 'success',
                         summary: 'Aplikace je aktuální',
@@ -95,6 +96,7 @@ const UpdateChecker = () => {
                     <ProgressBar mode="indeterminate" style={{ height: '6px' }} />
                 </div>
             )}
+            
         </div>
     );
 };

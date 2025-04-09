@@ -14,20 +14,21 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <div style={{ display: 'flex' }}>
-        <SideBar />
-        <div style={{ padding: 20, flex: 1 }}>
-          <UpdateChecker />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/films" element={<FilmsPage />} />
-            <Route path="/series" element={<SeriesPage />} />
-            <Route path="/anime" element={<AnimePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
+        <div className="app-container">
+          <SideBar className="sidebar" />
+          <div style={{ padding: 10, flex: 1 }}>
+            <UpdateChecker />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/films" element={<FilmsPage />} />
+              <Route path="/series" element={<SeriesPage />} />
+              <Route path="/anime" element={<AnimePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </div>
         </div>
-      </div>
     </BrowserRouter>
+
   );
 };
 
