@@ -11,7 +11,6 @@ import SeriesPage from './pages/SeriesPage';
 import FilmsPage from './pages/FilmsPage';
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Inicializace na false
 
   return (
     <BrowserRouter>
