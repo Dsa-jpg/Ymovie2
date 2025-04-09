@@ -18,7 +18,16 @@ const UpdateChecker = () => {
         try {
             toast.current.show({ severity: 'info', summary: 'Stahuji...', detail: 'Probíhá aktualizace...', life: 3000 });
             await update.downloadAndInstall();
-            await relaunch();
+            // Zavoláme relaunch až po dokončení instalace
+            toast.current.show({
+                severity: 'success',
+                summary: 'Aktualizace dokončena',
+                detail: 'Aplikace bude restartována.',
+                life: 3000
+            });
+            setTimeout(async () => {
+                await relaunch(); // Restart aplikace po zpoždění
+            }, 3000); // 3 sekundy čekání pro zobrazení hlášení
         } catch (error) {
             console.error('Chyba při stahování:', error);
             toast.current.show({ severity: 'error', summary: 'Chyba', detail: 'Aktualizace se nezdařila.', life: 3000 });
@@ -52,7 +61,8 @@ const UpdateChecker = () => {
                                 />
                             </div>
                         ),
-                        life: 10000
+                        life: 10000,
+                        className: 'custom-toast', // Přidání vlastní třídy
                     });
                 } else {
                     // Testovací fallback toast
