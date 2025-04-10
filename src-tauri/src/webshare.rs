@@ -28,24 +28,11 @@ pub struct ResponseUserData {
 
 }
 
-
-impl ResponseSalt {
-    fn from_xml(xml: &str) -> Result<Self, String> {
-        from_str(xml).map_err(|e| format!("Xml parser errror {:?}", e)) // the |e| is anonymus fn (usecases in map, etc) like a lambda expression in python
-    }
+// generic fn  where obj have to be alive for the define time to process the 'lifetime deserialization'
+fn parse_xml<T: for<'de> Deserialize<'de>>(xml: &str) -> Result<T, String> {
+    from_str(xml).map_err(|e| format!("Xml parser error: {:?}", e))
 }
 
-impl ResponseLogin {
-    fn from_xml(xml: &str) -> Result<Self, String> {
-        from_str(xml).map_err(|e| format!("Xml parser errror {:?}", e)) // the |e| is anonymus fn (usecases in map, etc) like a lambda expression in python
-    }
-}
-
-impl ResponseUserData {
-    fn from_xml(xml: &str) -> Result<Self, String> {
-        from_str(xml).map_err(|e| format!("Xml parser errror {:?}", e)) // the |e| is anonymus fn (usecases in map, etc) like a lambda expression in python
-    }
-}
 
 pub struct WebshareApi {
     client: Client,
@@ -88,7 +75,7 @@ impl WebshareApi {
             .map_err(|e| format!("Failed to read body: {}", e))?;
 
         println!("[Webshare] Raw response:\n{}", body);
-        ResponseSalt::from_xml(&body)
+        parse_xml::<ResponseSalt>(&body)
 
     
     }
@@ -122,7 +109,8 @@ impl WebshareApi {
 
         println!("[Webshare] Raw response:\n{}", body);
         // Zde můžeš přizpůsobit podle struktury odpovědi, kterou vrátí API
-        ResponseLogin::from_xml(&body) 
+        parse_xml::<ResponseLogin>(&body)
+        
     }
 
 
@@ -152,7 +140,7 @@ impl WebshareApi {
 
         println!("[Webshare] Raw response:\n{}", body);
         // Zde můžeš přizpůsobit podle struktury odpovědi, kterou vrátí API
-        ResponseUserData::from_xml(&body) 
+        parse_xml::<ResponseUserData>(&body)
 
     }
 

@@ -1,16 +1,29 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Toast } from 'primereact/toast';
 import { FloatLabel } from 'primereact/floatlabel';
 import { InputText } from 'primereact/inputtext';
+import "./LoginForm.css"
 
 const LoginForm = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [salt, setSalt] = useState('');
-   
-    const toast = useRef(null); // Definujeme referenci na toast
+    const [logged, setLogged] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); // ⬅️ přidaný loading state
 
+    const toast = useRef(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const salt = localStorage.getItem('salt');
+        const storedUsername = localStorage.getItem('username');
+
+        if (token && salt && storedUsername) {
+            setLogged(true);
+        }
+        setIsLoading(false); // ⬅️ ukončí načítání
+    }, []);
 
     const handleSubmit = async () => {
         try {
@@ -20,32 +33,30 @@ const LoginForm = () => {
 
             const resultLogin = await invoke('login', { username, password, salt });
             localStorage.setItem('token', resultLogin);
+            localStorage.setItem('username', username);
 
-            const token = localStorage.getItem('token')
-            const resultUserData = await invoke('get_user_data',{token})
-            
+            const token = localStorage.getItem('token');
+            const resultUserData = await invoke('get_user_data', { token });
 
-            // Ukázání toastu o úspěšném přihlášení
             toast.current.show({
-                severity: 'success', 
+                severity: 'success',
                 summary: 'Login Successful',
                 detail: 'You have successfully logged in.',
                 life: 3000,
             });
 
             toast.current.show({
-                severity: 'info', 
+                severity: 'info',
                 summary: 'The userdata',
                 detail: `The Vip is until: ${resultUserData}`,
                 life: 3000,
-            })
+            });
+
+            setLogged(true);
 
         } catch (error) {
-
-
-            // Ukázání toastu o neúspěšném přihlášení
             toast.current.show({
-                severity: 'warn', // Varovná zpráva (žlutá barva)
+                severity: 'warn',
                 summary: 'Login Failed',
                 detail: 'There was an error during login.',
                 life: 3000,
@@ -55,37 +66,40 @@ const LoginForm = () => {
         }
     };
 
+    if (isLoading) {
+        return null; // nebo třeba <div>Načítání...</div> pokud chceš loader
+    }
+
     return (
         <div>
-            <Toast ref={toast} position="bottom-right" /> {/* Přidání toast komponenty */}
-            <div className="card flex justify-content-center">
-                <FloatLabel className="p-float-label">
-                    <label htmlFor="username">Username</label>
-                    <InputText
-                        type="text"
-                        id="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                    
-                </FloatLabel>
+            <Toast ref={toast} position="bottom-right" />
+            {!logged && (
+                <div className="card flex justify-content-center">
+                    <FloatLabel className="p-float-label">
+                        <label htmlFor="username" className='user'>Username</label>
+                        <InputText
+                            type="text"
+                            id="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                    </FloatLabel>
 
-                <FloatLabel className="p-float-label">
-                    <label htmlFor="password">Password</label>
-                    <InputText
-                        type="password"
-                        id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                    
-                </FloatLabel>
+                    <FloatLabel className="p-float-label">
+                        <label htmlFor="password" className='pass'>Password</label>
+                        <InputText
+                            type="password"
+                            id="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </FloatLabel>
 
-                <button onClick={handleSubmit}>Login</button>
-            </div>
+                    <button onClick={handleSubmit}>Login</button>
+                </div>
+            )}
         </div>
     );
 };
-
 
 export default LoginForm;
